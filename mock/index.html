@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="ぷにカレ">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="apple-touch-startup-image" href="splash.png">
+
+    <title>p2cale - mock</title>
+    <link rel="stylesheet" href="style.css?Aleswa4s3joijijoiAA2">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="version">220711</div>
+    <div id="blur">
+    </div>
+    <div id="detailView">
+        <p id="detailView_day"></p>
+        <p id="detailView_title"></p>
+        <p id="detailView_desc">予定????</p>
+    </div>
+    <div id="addScheduleView" class="view">
+        <div class="view-header">スケジュール</div>
+        <div class="view-cancel" onclick="delSchedule();">削除</div>
+        <div class="view-apply" onclick="setSchedule();">完了</div>
+
+        <p id="addScheduleView_Date">????/?/?の予定</p>
+
+        <input type="text" id="addScheduleTitle" placeholder="予定の名前"><br>
+        <textarea placeholder="予定の詳細" id="addScheduleDesc" rows="10"></textarea><br>
+        <label id="addScheduleColorParent">カラー
+            <input type="color" id="addScheduleColor">
+        </label>
+    </div>
+    <div id="menuView" class="view">
+        <div class="view-header">設定</div>
+        <div class="view-apply" onclick="closeMenu();">完了</div>
+        
+        <p class="menu-context">
+            バックアップ
+        </p>
+        <div class="menu-item" onclick="exportJson();">
+            JSONで出力
+        </div>
+        
+        <p class="menu-context">
+            情報
+        </p>
+        <div class="menu-item" onclick="appVersion();">
+            バージョン情報
+        </div>
+    </div>
+    <main>
+        
+    </main>
+    <script>
+        let touchFlag = false;
+        let touchedPos; //tap開始時と終了時で座標が違うか確認するための変数
+        let mainDOM;
+        let activeMonth, activeDay;
+        let scrollEvent = true;
+        let blurDOM, calendarDOM, footerDOM, detailDOM, detailViewDayDOM, parentDOM;
+        let setStyle;
+
+        window.onload = () => {
+            mainDOM = document.querySelector("main");
+
+            activeMonth = new Date();
+            addCalendar(new Date(activeMonth.getFullYear(), activeMonth.getMonth()-1, 1));
+            addCalendar(activeMonth);
+            addCalendar(new Date(activeMonth.getFullYear(), activeMonth.getMonth()+1, 1));
+            setMenuListener();
+            mainDOM.scrollLeft = document.body.clientWidth;
+
+            mainDOM.addEventListener("scroll", (e) => {
+                if(!scrollEvent)return;
+                scrollEvent = false;
+                const selectedMonthIndex = e.target.scrollLeft / document.body.clientWidth;
+                if(selectedMonthIndex == 0){
+                    activeMonth = new Date(activeMonth.getFullYear(), activeMonth.getMonth()-1, 1);
+                    addCalendar(new Date(activeMonth.getFullYear(), activeMonth.getMonth()-1, 1), -1);
+                    setMenuListener();
+                    deleteCalendar(1);
+                    mainDOM.scrollLeft = document.body.clientWidth;
+                    scrollEvent = true;
+                }else if(selectedMonthIndex >= 2){
+                    activeMonth = new Date(activeMonth.getFullYear(), activeMonth.getMonth()+1, 1);
+                    addCalendar(new Date(activeMonth.getFullYear(), activeMonth.getMonth()+1, 1), 1);
+                    setMenuListener();
+                    setTimeout(() => {
+                        deleteCalendar(-1);
+                        mainDOM.scrollLeft = document.body.clientWidth;
+                        scrollEvent = true;
+                    }, 200);
+                }else{
+                    scrollEvent = true;
+                }
+                
+                
+            });
+        }
+
+        const setMenuListener = () => {
+            footerDOM = document.querySelector("#mf_" + (activeMonth.getMonth()+1).toString());
+            footerDOM.addEventListener("touchstart", ()=>{
+                touchFlag = true;
+                setTimeout(() => {
+                    if(!touchFlag)return;
+                    touchFlag = false;
+                    showMenu();
+                }, 500);
+            });
+            footerDOM.addEventListener("touchend", ()=>{
+                if(!touchFlag)return;
+                touchFlag = false;
+                location.reload();
+            });
+        }
+
+        //position: -1=左　1=右
+        const addCalendar = (date, position = 1) => {
+            
+
+            const parentHTML =
+            `<div class="month-parent" id="calendar_${date.getMonth()+1}">\
+                <div class="calendar">\
+                    <div class="week-parent">\
+                        <div class="cale-item week red">日</div>\
+                        <div class="cale-item week">月</div>\
+                        <div class="cale-item week">火</div>\
+                        <div class="cale-item week">水</div>\
+                        <div class="cale-item week">木</div>\
+                        <div class="cale-item week">金</div>\
+                        <div class="cale-item week blue">土</div>\
+                    </div>\
+                </div>\
+                <div class="month-footer" id="mf_${date.getMonth()+1}">\
+                    <p class="monthLabel">${date.getFullYear()}年 ${date.getMonth()+1}月</p>\
+                </div>\
+            </div>`;
+
+            if(position == -1){
+                mainDOM.innerHTML = parentHTML + mainDOM.innerHTML;
+            }else{
+                mainDOM.innerHTML = mainDOM.innerHTML + parentHTML;
+            }
+            
+
+            blurDOM = document.querySelector("#blur");
+            parentDOM = document.querySelector("#calendar_" + (parseInt(date.getMonth())+1).toString());
+            calendarDOM = parentDOM.getElementsByClassName("calendar")[0];
+            detailDOM = document.querySelector("#detailView");
+            detailViewDayDOM = document.querySelector("#detailView_day");
+            detailViewTitleDOM = document.querySelector("#detailView_title");
+            detailViewDescDOM = document.querySelector("#detailView_desc");
+
+
+            const day1 = new Date(date.getFullYear(), date.getMonth(), 1);
+            for(let i=0; i<day1.getDay(); i++){
+                const dayDOM = document.createElement("div");
+                dayDOM.className = "cale-item";
+                dayDOM.innerHTML = "";
+                calendarDOM.appendChild(dayDOM);
+            }
+            const lastday = new Date(date.getFullYear(), date.getMonth()+1, 0);
+            for(let i=1; i<=lastday.getDate(); i++){
+                const dayDOM = document.createElement("div");
+                dayDOM.className = "cale-item day";
+                dayDOM.id = date.getMonth()+1 + "_" + i;
+                //dayDOM.innerHTML = i.toString();
+                drawEvents(dayDOM);
+                calendarDOM.appendChild(dayDOM);
+            }
+
+            document.querySelectorAll(".day").forEach(item => {
+                /*item.addEventListener("click", (e)=>{
+                    if(document.documentElement.clientWidth < 751)return; //mobile表示の時はtapとイベントが被るのでclickイベント無効
+                    e.preventDefault();
+                    showSchedule(parseInt(e.target.id.split("_")[1]));
+                })*/
+                item.addEventListener("touchstart", touchstartEvent);
+                item.addEventListener("touchend", (e)=>{
+                    //console.log(e.changedTouches[0])
+                    if(touchedPos && e.changedTouches){
+                        if(e.changedTouches[0].pageX == touchedPos.pageX && e.changedTouches[0].pageY == touchedPos.pageY){
+                            touchFlag = false; //長押しフラグの解除
+                            showSchedule(parseInt(e.target.id.split("_")[1]));
+                            return;
+                        }
+                    }
+
+                        blurDOM.style = "";
+                        detailDOM.style = setStyle + "transform:scale(0);";
+                        touchFlag = false;
+                    
+                    
+                });
+            });
+            
+
+        };
+
+        const touchstartEvent = (e) => {
+            touchFlag = true;
+            if(e.changedTouches){
+                touchedPos = e.changedTouches[0];
+            }else{
+                touchedPos = null;
+            }
+            //console.log(touchedPos)
+            
+            setTimeout((e)=>{
+                touchedPos = null; //タップ開始位置と終了位置が被っているとスケジュール追加画面が出てくるのを防ぐ
+                if(!touchFlag)return;
+                const pos = {
+                    x:e.changedTouches[0].pageX,
+                    y:e.changedTouches[0].pageY
+                };
+                let posAdd = {
+                    x:-90,
+                    y:-200
+                };
+                if((pos.x + posAdd.x) < 0){
+                    posAdd.x = 20 - pos.x;
+                }
+                if((pos.y + posAdd.y) < 0){
+                    posAdd.y = 15;
+                }
+                if((pos.x + 180 + posAdd.x) > document.body.clientWidth){
+                    posAdd.x = (document.body.clientWidth - pos.x) -180;
+                }
+
+                setStyle = `left:${pos.x+posAdd.x/2}px;top:${pos.y+posAdd.y/2}px;border:none;`;
+                blurDOM.style = "opacity: 1";
+
+                const data = getEvents(activeMonth.getFullYear().toString() + activeMonth.getMonth().toString() + e.target.id.split("_")[1].toString());
+                detailViewDayDOM.innerText = e.target.id.replace("_", "/");
+                
+                if(data[0] == "" && data[1] == ""){
+                    detailViewTitleDOM.innerText = data[0] != "" ? data[0] : "予定なし";
+                    detailViewDescDOM.innerText = "";
+                }else{
+                    detailViewTitleDOM.innerText = data[0] != "" ? data[0] : "タイトルなし";
+                    detailViewDescDOM.innerText = data[1];
+                }
+
+                
+
+                detailDOM.style = setStyle + `transform:scale(1) translate(${posAdd.x/2}px,${posAdd.y/2}px);`;
+            },200, e)
+
+            
+        };
+
+        let monthDomList;
+        const deleteCalendar = (position = 1) => {
+            
+            monthDomList = document.querySelectorAll(".month-parent");
+            if(position == 1){
+                monthDomList[monthDomList.length - 1].remove();
+            }else{
+                monthDomList[0].remove();
+            }
+            
+        };
+
+        const setSchedule = () => {
+            const editScheduleDOM = document.querySelector("#addScheduleView");
+            const data = [
+                document.querySelector("#addScheduleTitle").value, 
+                document.querySelector("#addScheduleDesc").value
+            ];
+            if(data[0] != "" || data[1] != ""){
+                if(!setEvents(activeMonth.getFullYear().toString() + activeMonth.getMonth().toString() + activeDay.toString(), data)){
+                    alert("イベントの設定に失敗");
+                    return;
+                }
+            }
+            editScheduleDOM.style.animation = ".4s ease View2";
+            drawEvents();
+            setTimeout(() => {
+                editScheduleDOM.style.display = "none";
+                
+            }, 300);
+            
+            
+        };
+        const delSchedule = () => {
+            if(!window.confirm("予定を削除してもよろしいですか？"))return;
+            const data = ["","",""];
+            const editScheduleDOM = document.querySelector("#addScheduleView");
+            if(!setEvents(activeMonth.getFullYear().toString() + activeMonth.getMonth().toString() + activeDay.toString(), data)){
+                alert("イベントの設定に失敗");
+            }else{
+                drawEvents();
+                editScheduleDOM.style.animation = ".4s ease View2";
+                setTimeout(() => {
+                    editScheduleDOM.style.display = "none";
+                    
+                }, 300);
+            }
+        }
+        const showSchedule = (day) => {
+            activeDay = day;
+            const selectedDate = new Date(activeMonth.getFullYear(), activeMonth.getMonth(), day);
+            const data = getEvents(activeMonth.getFullYear().toString() + activeMonth.getMonth().toString() + activeDay.toString());
+            if(data){
+                document.querySelector("#addScheduleTitle").value = data[0];
+                document.querySelector("#addScheduleDesc").value = data[1];
+            }
+            const editScheduleDOM = document.querySelector("#addScheduleView");
+            editScheduleDOM.style.animation = ".4s ease View";
+            editScheduleDOM.style.display = "block";
+            document.querySelector("#addScheduleView_Date").innerText = `${selectedDate.getFullYear()}/${selectedDate.getMonth()+1}/${selectedDate.getDate()}`;
+        };
+
+        const showMenu = () => {
+            const menuDOM = document.querySelector("#menuView");
+            menuDOM.style.animation = ".4s ease View";
+            menuDOM.style.display = "block";
+        };
+        const closeMenu = () => {
+            const menuDOM = document.querySelector("#menuView");
+            menuDOM.style.animation = ".4s ease View2";
+            setTimeout(() => {
+                menuDOM.style.display = "none";
+            }, 300);
+        }
+
+        const getEvents = (date) => {
+            const savedata = localStorage.getItem("p2cale_savedata");
+            let db = savedata ? JSON.parse(savedata) : [];
+            let index = db.length > 0 ? db[0].indexOf(date) : -1;
+            if(index != -1)
+                return [db[1][index], db[2][index]];
+            else
+                return ["", ""];
+        };
+
+        const setEvents = (date, data) => {
+            const savedata = localStorage.getItem("p2cale_savedata");
+            let db = savedata ? JSON.parse(savedata) : [[],[],[],[]];
+            let index = db.length > 0 ? db[0].indexOf(date) : -1;
+            if(index != -1){
+                db[1][index] = data[0];
+                db[2][index] = data[1];
+                //db[3][index] = data[2];
+            }else{
+                db[0].push(date);
+                db[1].push(data[0]);
+                db[2].push(data[1]);
+                //db[3].push(data[2]);
+            }
+            localStorage.setItem("p2cale_savedata", JSON.stringify(db));
+            return true;
+        };
+
+        const drawEvents = (dom) => {
+            if(!dom){
+                document.querySelectorAll(".day").forEach(item => {
+                    const day = item.id.split("_");
+                    const data = getEvents(activeMonth.getFullYear().toString() + (day[0]-1).toString() + day[1].toString());
+                    item.innerHTML = day[1].toString() + "<br>" + data[0];
+                });
+            }else{
+                const day = dom.id.split("_");
+                const data = getEvents(activeMonth.getFullYear().toString() + (day[0]-1).toString() + day[1].toString());
+                dom.innerHTML = day[1].toString() + "<br><span class='day-title'>" + data[0] + "</span>";
+            }
+        };
+
+        const exportJson = () => {
+            alert("無理");
+        };
+
+        const appVersion = () => {
+            alert("バージョン情報");
+        };
+    </script>
+</body>
+</html>

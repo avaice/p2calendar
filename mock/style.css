@@ -1,0 +1,288 @@
+:root{
+    --bgColor: white;
+    --fontColor: black;
+
+    --borderColor: rgba(128, 128, 128, 0.5);
+    --mq: 751px;
+
+    overflow-y: hidden;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root{
+        --bgColor: black;
+        --fontColor: white;
+    }
+}
+
+body{
+    margin:0;
+    padding:0;
+    width:100%;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    -webkit-touch-callout:none; /* リンク長押しのポップアップを無効化 */
+    -webkit-user-select:none; /* テキスト長押しの選択ボックスを無効化 */
+    user-select: none;
+    background-color: var(--bgColor);
+    color: var(--fontColor);
+}
+
+.blue{
+    color:rgb(29, 118, 219);
+}
+.red{
+    color:rgb(219, 29, 70);
+}
+
+#version{
+    display: none;
+
+    position:absolute;
+    left:0;
+    top:0;
+    background-color: rgba(0, 0, 0, 0.3);
+    color:white;
+    width:61px;
+    height: 20px;
+}
+
+#blur{
+    z-index:1;
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background-color: rgba(0, 0, 0, 0.245);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    pointer-events: none;
+    opacity: 0;
+    transition: all .2s;
+}
+
+/* 予定追加View */
+.view{
+    display: none;
+    position: relative;
+    background-color: var(--bgColor);
+    position:absolute;
+    height:-webkit-fill-available;
+    width:100%;
+    margin:0;
+    padding:0;
+    z-index: 1;
+}
+.view-header{
+    padding: 5px;
+    text-align: center;
+    font-size: 24px;
+    border-bottom:1px solid var(--borderColor);
+}
+.view-apply{
+    color:rgb(29, 118, 219);
+    cursor: pointer;
+    position:absolute;
+    padding: 10px;
+    top:-3px;
+    right:0px;
+    font-size:20px;
+}
+.view-cancel{
+    color:rgb(219, 29, 70);
+    cursor: pointer;
+    position:absolute;
+    padding: 10px;
+    top:-3px;
+    left:0px;
+    font-size:20px;
+}
+#addScheduleView_Date{
+    text-align: center;
+    margin:10px;
+    font-size: 18px;
+    color: gray;
+}
+#addScheduleTitle{
+    background-color: var(--bgColor);
+    color: var(--fontColor);
+    border-radius: 0;
+    width:calc(100% - 20px);
+    margin:10px;
+    padding:0;
+    font-size: 28px;
+    border:none;
+    border-bottom: 1px solid var(--borderColor);
+}
+#addScheduleDesc{
+    background-color: var(--bgColor);
+    color: var(--fontColor);
+    width:calc(100% - 22px);
+    margin:10px;
+    padding:0;
+    font-size: 20px;
+    border: 1px solid var(--borderColor);
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+}
+#addScheduleColorParent{
+    margin:10px;
+    
+}
+
+.menu-context{
+    padding-top: 20px;
+    margin:10px;
+    color:gray;
+}
+.menu-item{
+    border: solid 1px gray;
+    border-width: 1px 0px;
+    padding: 15px 10px;
+}
+@keyframes View {
+    0%{
+        opacity: 0.5;
+        transform: translateY(100vh);
+    }
+    100%{
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+@keyframes View2 {
+    100%{
+        opacity: 1;
+        transform: translateY(100vh);
+    }
+    0%{
+        opacity: 0.5;
+        transform: translateY(0);
+    }
+}
+
+
+/* 月ごとのDIV要素 */
+main{
+    position:absolute;
+    height:-webkit-fill-available;
+    width:100%;
+    margin:0;
+    padding:0;
+
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+}
+.month-parent{
+    scroll-snap-align: start;
+    height:100%;
+    width:100%;
+    flex:none;
+}
+
+.calendar{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:calc(100% - 50px);
+    display:flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+}
+.month-footer{
+    height:50px;
+    background-color: var(--bgColor);
+    text-align: center;
+}
+.monthLabel{
+    margin:0;
+    font-size: 26px;
+    font-weight: bold;
+    padding-top:8px;
+    pointer-events: none;
+}
+
+.cale-item{
+    transition: all .2s;
+    margin:0;
+    padding:0;
+    width:calc(100%/7 - 1px);
+    height:calc((100% - 47px)/6);
+    /*border-right:1px solid var(--borderColor);*/
+    border-top:1px solid var(--borderColor);
+    overflow: hidden;
+}
+.week-parent{
+    width:100%;
+    display:flex;
+    flex-wrap:wrap;
+    text-align: center;
+}
+.week{
+    font-weight: bold;
+    height:35px;
+    padding-top:5px;
+    border:none;
+}
+.day{
+    animation: none;
+}
+.day-title{
+    font-size: 12px;
+}
+
+@keyframes fadeIn {
+    0%{
+        opacity: 0;
+    }
+    100%{
+        opacity: 1;
+    }
+}
+
+
+#detailView{
+    margin:0;
+    padding:0 10px;
+    position:absolute;
+    height:200px;
+    width:150px;
+    background-color: var(--bgColor);
+    border-radius: 10px;
+    box-shadow: 0 0 5px gray;
+    z-index:9999;
+    transform: scale(0);
+    transition: all .4s;
+    pointer-events: none;
+}
+#detailView_day{
+    display: none;
+    padding:0;
+    margin-top:10px;
+    font-size: 20px;
+    font-weight: bold;
+}
+#detailView_title{
+    font-size: 22px;
+    font-weight: bold;
+}
+
+
+
+
+@media(min-width:751px){
+    .day:hover{
+        background-color: rgb(158, 158, 158);
+        cursor: pointer;
+    }
+    @media(min-height:650px){
+        #addScheduleView{
+            box-shadow: 0 0 5px gray;
+            width: 500px;
+            height:600px;
+            left:calc(50% - 250px);
+            top:calc(50% - 300px);
+        }
+    }
+}

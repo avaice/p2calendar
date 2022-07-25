@@ -1,26 +1,68 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, {useEffect} from 'react';
+import MenuView from './MenuView';
+import AddScheduleView from './AddScheduleView';
+import MainCalendar from './MainCalendar'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+let now : Date = new Date();
+let scrollTimer : NodeJS.Timeout;
+let mainDOM : HTMLElement;
+let isTouching = false;
+
+class App extends React.Component<{}, {date : Date}> {
+
+  constructor(props: {} | Readonly<{}>){
+    super(props);
+    this.state = {date : new Date()};
+  }
+  
+  componentDidMount() {
+    
+    const dom = document.querySelector("main");
+    
+    if(dom)mainDOM = dom;
+    
+    if(mainDOM){
+      this.showCurrentMonth();
+
+      mainDOM.addEventListener("touchstart", ()=>isTouching = true)
+      mainDOM.addEventListener("scroll", (e) => {
+        if(!isTouching)return;
+        if(scrollTimer)clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(()=>this.scrollEnd(mainDOM), 200)
+      });
+    }
+  }
+
+  componentDidUpdate() {
+    this.showCurrentMonth();
+  }
+
+  showCurrentMonth(){
+    // 左から2つ目(現在の月)のカレンダーを表示する
+    mainDOM.scrollLeft = document.body.clientWidth; 
+  }  
+
+  scrollEnd(dom : HTMLElement){
+    isTouching = false;
+    if(scrollTimer)clearTimeout(scrollTimer);
+    const selectedMonthIndex = Math.floor(dom.scrollLeft / document.body.clientWidth);
+    if(selectedMonthIndex == 0){
+      this.setState({date : new Date(this.state.date.getFullYear(), this.state.date.getMonth() - 1, 1)});
+    }else if(selectedMonthIndex == 2){
+      this.setState({date : new Date(this.state.date.getFullYear(), this.state.date.getMonth() + 1, 1)});
+    }
+    
+  }
+
+  render(){
+    return (
+      <>
+      <MenuView visible={false} />
+      <AddScheduleView />
+      <MainCalendar date={this.state.date}/>
+      </>
+    );
+  }
 }
 
 export default App;
