@@ -2,9 +2,11 @@ import React from 'react';
 import MenuView from './MenuView';
 import AddScheduleView from './AddScheduleView';
 import MainCalendar from './MainCalendar'
+import DataStore from './dataStore';
 let scrollTimer : NodeJS.Timeout;
 let mainDOM : HTMLElement;
 let isTouching = false;
+let isTouchingCmndBtn = false;
 
 class App extends React.Component<{}, {date : Date}> {
 
@@ -16,6 +18,7 @@ class App extends React.Component<{}, {date : Date}> {
   componentDidMount() {
     
     const dom = document.querySelector("main");
+    const cmndBtn = document.querySelector("#cmndbtn");
     
     if(dom)mainDOM = dom;
     
@@ -28,6 +31,35 @@ class App extends React.Component<{}, {date : Date}> {
         if(scrollTimer)clearTimeout(scrollTimer);
         scrollTimer = setTimeout(()=>this.scrollEnd(mainDOM), 200)
       });
+
+      if(cmndBtn){
+        cmndBtn.addEventListener("touchstart", ()=>{
+          if(!isTouchingCmndBtn){
+            isTouchingCmndBtn = true;
+            setTimeout(() => {
+              if(!isTouchingCmndBtn)return;
+              switch(window.prompt("コマンドを入力してね")){
+                case "import":
+                  const input = window.prompt("JSONを貼ってください");
+                  if(!input)return;
+                  localStorage.setItem("p2cale2_data", input);
+                  alert("loadしました。再読み込みします");
+                  window.location.reload();
+                  break;
+                case "export":
+                  document.body.innerText = JSON.stringify(DataStore.GetAll())
+                  break;
+                default:
+                  alert("知らないコマンドきた・・");
+                  break;
+              }
+            }, 1000);
+          }
+        });
+        cmndBtn.addEventListener("touchend", ()=>isTouchingCmndBtn = false);
+      }
+
+
     }
   }
 
@@ -60,7 +92,7 @@ class App extends React.Component<{}, {date : Date}> {
       <AddScheduleView />
       <MainCalendar date={this.state.date}/>
       <div style={{"position":"absolute","right":"10px", "bottom":"50px"}}>
-        <div className='button'><span className='material-icons' onClick={()=>{this.setState({date : new Date()})}}>today</span></div>
+        <div className='button' id='cmndbtn'><span className='material-icons' onClick={()=>{this.setState({date : new Date()})}}>today</span></div>
       </div>
       </>
     );

@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import AddScheduleView from './AddScheduleView';
 import DataStore from './dataStore';
 

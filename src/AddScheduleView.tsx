@@ -1,10 +1,5 @@
-import { render } from '@testing-library/react';
-import React, {useState} from 'react';
+import React from 'react';
 import DataStore from './dataStore';
-
-interface AddScheduleViewProps{
-  visible : boolean
-};
 
 class AddScheduleView extends React.Component<{}, {}> {
   constructor(props: {}){
@@ -27,7 +22,7 @@ class AddScheduleView extends React.Component<{}, {}> {
       asv_desc.value = data.text;
     }
     asv_dom.style.animation = ".4s ease View";
-    asv_dom.style.display = "block";
+    setTimeout(()=>asv_dom.style.display = "block", 0.05)
   }
 
   hide(){
@@ -43,7 +38,7 @@ class AddScheduleView extends React.Component<{}, {}> {
     const asv_desc  : HTMLInputElement | null = document.querySelector("#addScheduleDesc");
     if(!asv_date || !asv_title || !asv_desc)return;
 
-    if(asv_title.value != "" || asv_desc.innerText != ""){
+    if(asv_title.value !== "" || asv_desc.innerText !== ""){
       DataStore.Set({
         key : asv_date.innerText,
         title : asv_title.value,
@@ -51,6 +46,10 @@ class AddScheduleView extends React.Component<{}, {}> {
       });
     }
 
+    const changeDOM = document.getElementById(asv_date.innerText.split("/")[1] + "_" + asv_date.innerText.split("/")[2])
+    if(changeDOM){
+      changeDOM.innerHTML = `${asv_date.innerText.split("/")[2]}<br />${asv_title.value}`;
+    }
     this.hide();
   }
 
