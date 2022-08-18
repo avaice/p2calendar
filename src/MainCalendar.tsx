@@ -21,7 +21,7 @@ function Calendar(props : CalendarProps){
   let domArray : JSX.Element[] = [];
   const day1 = new Date(props.date.getFullYear(), props.date.getMonth(), 1);
   for(let i=0; i<day1.getDay(); i++){
-      const dayDOM = <div className='cale-item day' key={"placeHolder_" + i.toString()}></div>;
+      const dayDOM = <div className='cale-item' key={"placeHolder_" + i.toString()}></div>;
       domArray.push(dayDOM);
   }
   const lastday = new Date(props.date.getFullYear(), props.date.getMonth()+1, 0);

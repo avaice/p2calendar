@@ -1,9 +1,7 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import MenuView from './MenuView';
 import AddScheduleView from './AddScheduleView';
 import MainCalendar from './MainCalendar'
-
-let now : Date = new Date();
 let scrollTimer : NodeJS.Timeout;
 let mainDOM : HTMLElement;
 let isTouching = false;
@@ -46,13 +44,14 @@ class App extends React.Component<{}, {date : Date}> {
     isTouching = false;
     if(scrollTimer)clearTimeout(scrollTimer);
     const selectedMonthIndex = Math.floor(dom.scrollLeft / document.body.clientWidth);
-    if(selectedMonthIndex == 0){
+    if(selectedMonthIndex === 0){
       this.setState({date : new Date(this.state.date.getFullYear(), this.state.date.getMonth() - 1, 1)});
-    }else if(selectedMonthIndex == 2){
+    }else if(selectedMonthIndex === 2){
       this.setState({date : new Date(this.state.date.getFullYear(), this.state.date.getMonth() + 1, 1)});
     }
     
   }
+
 
   render(){
     return (
@@ -60,6 +59,9 @@ class App extends React.Component<{}, {date : Date}> {
       <MenuView visible={false} />
       <AddScheduleView />
       <MainCalendar date={this.state.date}/>
+      <div style={{"position":"absolute","right":"10px", "bottom":"50px"}}>
+        <div className='button'><span className='material-icons' onClick={()=>{this.setState({date : new Date()})}}>today</span></div>
+      </div>
       </>
     );
   }
